@@ -22,15 +22,19 @@ const getListUsers = (req, res) => {
 };
 
 const getUserById = (req, res) => {
-  User.findById(req.params.userId)
-    .then((user) => {
-      if (!user) {
-        res.status(404).send({ message: 'Пользователь по данному _id не найден' });
-        return;
-      }
-      res.send(user);
-    })
-    .catch(() => res.status(400).send({ message: 'Неправильный _id' }));
+  if (/^[a-f\d]{24}$/.test(req.params.userId)) {
+    User.findById(req.params.userId)
+      .then((user) => {
+        if (!user) {
+          res.status(404).send({ message: 'Пользователь по данному _id не найден' });
+          return;
+        }
+        res.send(user);
+      })
+      .catch(() => res.status(500).send({ message: 'Произошла ошибка на сервере' }));
+  } else {
+    res.status(400).send({ message: 'Неправильный _id' });
+  }
 };
 
 const updateUser = (req, res) => {

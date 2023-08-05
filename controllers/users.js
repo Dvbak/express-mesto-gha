@@ -1,3 +1,4 @@
+// const mongoose = require('mongoose');
 const User = require('../models/user');
 
 const createUser = (req, res) => {
@@ -39,52 +40,51 @@ const getUserById = (req, res) => {
 
 const updateUser = (req, res) => {
   const { name, about } = req.body;
-  if (req.user._id) {
-    User.findByIdAndUpdate(
-      req.user._id,
-      { name, about },
-      {
-        new: true,
-        runValidators: true,
-      },
-    )
-      .then((user) => {
-        res.send(user);
-      })
-      .catch((err) => {
-        if (err.name === 'ValidationError') {
-          res.status(400).send({ message: err.message });
-        } else {
-          res.status(404).send({ message: 'Пользователь по данному _id не найден' });
-        }
-      });
-  } else {
-    res.status(500).send({ message: 'Произошла ошибка на сервере' });
-  }
+  User.findByIdAndUpdate(
+    req.user._id,
+    { name, about },
+    {
+      new: true,
+      runValidators: true,
+    },
+  )
+    .orFail()
+    .then((user) => {
+      res.send(user);
+    })
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        res.status(400).send({ message: err.message });
+      } else if (err.name === 'DocumentNotFoundError') {
+        res.status(404).send({ message: 'Пользователь по данному _id не найден' });
+      } else {
+        res.status(500).send({ message: 'Произошла ошибка на сервере' });
+      }
+    });
 };
 const updateAvatar = (req, res) => {
-  if (req.user._id) {
-    User.findByIdAndUpdate(
-      req.user._id,
-      { avatar: req.body.avatar },
-      {
-        new: true,
-        runValidators: true,
-      },
-    )
-      .then((user) => {
-        res.send(user);
-      })
-      .catch((err) => {
-        if (err.name === 'ValidationError') {
-          res.status(400).send({ message: err.message });
-        } else {
-          res.status(404).send({ message: 'Пользователь по данному _id не найден' });
-        }
-      });
-  } else {
-    res.status(500).send({ message: 'Произошла ошибка на сервере' });
-  }
+  User.findByIdAndUpdate(
+    req.user._id,
+    { avatar: req.body.avatar },
+    {
+      new: true,
+      runValidators: true,
+    },
+  )
+    .orFail()
+    .then((user) => {
+      res.send(user);
+    })
+    .catch((err) => {
+      console.log(err.name);
+      if (err.name === 'ValidationError') {
+        res.status(400).send({ message: err.message });
+      } else if (err.name === 'DocumentNotFoundError') {
+        res.status(404).send({ message: 'Пользователь по данному _id не найден' });
+      } else {
+        res.status(500).send({ message: 'Произошла ошибка на сервере' });
+      }
+    });
 };
 
 module.exports = {

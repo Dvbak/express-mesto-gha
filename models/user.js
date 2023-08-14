@@ -1,9 +1,11 @@
 const mongoose = require('mongoose');
+// const validator = require('validator');
+const isEmail = require('validator/lib/isEmail');
 
 const userSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: [true, 'Поле должно быть заполнено'],
+    default: 'Жак Ив Кусто',
     minlength: 2,
     maxlength: 30,
     validate: {
@@ -15,7 +17,7 @@ const userSchema = new mongoose.Schema({
   },
   about: {
     type: String,
-    required: [true, 'Поле должно быть заполнено'],
+    default: 'Исследователь',
     minlength: 2,
     maxlength: 30,
     validate: {
@@ -27,13 +29,27 @@ const userSchema = new mongoose.Schema({
   },
   avatar: {
     type: String,
-    required: [true, 'Поле должно быть заполнено'],
+    default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
     validate: {
       validator(url) {
         return (/^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)$/.test(url));
       },
       message: 'Ссылка на аватар должна начинаться с http:// или с https://',
     },
+  },
+  email: {
+    type: String,
+    unique: true,
+    required: [true, 'Поле должно быть заполнено'],
+    validate: {
+      validator: (email) => isEmail(email),
+      message: 'Введите правильный email',
+    },
+  },
+  password: {
+    type: String,
+    required: [true, 'Поле должно быть заполнено'],
+    select: false,
   },
 }, { versionKey: false });
 

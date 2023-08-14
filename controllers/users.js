@@ -1,44 +1,48 @@
-// const mongoose = require('mongoose');
+const httpConstants = require('http2').constants;
+const mongoose = require('mongoose');
+const BadRequestError = require('../errors/BadRequestError');
+const NotFoundError = require('../errors/NotFoundError');
 const User = require('../models/user');
 
-const createUser = (req, res) => {
+const createUser = (req, res, next) => {
   const { name, about, avatar } = req.body;
   User.create({ name, about, avatar })
     .then((user) => {
-      res.status(201).send({ data: user });
+      res.status(httpConstants.HTTP_STATUS_CREATED).send({ data: user });
     })
     .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(400).send({ message: err.message });
+      if (err instanceof mongoose.Error.ValidationError) {
+        next(new BadRequestError(err.message));
       } else {
-        res.status(500).send({ message: 'Произошла ошибка на сервере' });
+        next(err);
       }
     });
 };
 
-const getListUsers = (req, res) => {
+const getListUsers = (req, res, next) => {
   User.find({})
-    .then((users) => res.send(users))
-    .catch(() => res.status(500).send({ message: 'Произошла ошибка на сервере' }));
+    .then((users) => res.status(httpConstants.HTTP_STATUS_OK).send(users))
+    .catch((err) => next(err));
 };
 
-const getUserById = (req, res) => {
-  if (/^[a-f\d]{24}$/.test(req.params.userId)) {
-    User.findById(req.params.userId)
-      .then((user) => {
-        if (!user) {
-          res.status(404).send({ message: 'Пользователь по данному _id не найден' });
-          return;
-        }
-        res.send(user);
-      })
-      .catch(() => res.status(500).send({ message: 'Произошла ошибка на сервере' }));
-  } else {
-    res.status(400).send({ message: 'Неправильный _id' });
-  }
+const getUserById = (req, res, next) => {
+  User.findById(req.params.userId)
+    .orFail()
+    .then((user) => {
+      res.status(httpConstants.HTTP_STATUS_OK).send(user);
+    })
+    .catch((err) => {
+      if (err instanceof mongoose.Error.CastError) {
+        next(new BadRequestError('Неправильный _id'));
+      } else if (err instanceof mongoose.Error.DocumentNotFoundError) {
+        next(new NotFoundError('Пользователь по данному _id не найден'));
+      } else {
+        next(err);
+      }
+    });
 };
 
-const updateUser = (req, res) => {
+const updateUser = (req, res, next) => {
   const { name, about } = req.body;
   User.findByIdAndUpdate(
     req.user._id,
@@ -50,19 +54,19 @@ const updateUser = (req, res) => {
   )
     .orFail()
     .then((user) => {
-      res.send(user);
+      res.status(httpConstants.HTTP_STATUS_OK).send(user);
     })
     .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(400).send({ message: err.message });
-      } else if (err.name === 'DocumentNotFoundError') {
-        res.status(404).send({ message: 'Пользователь по данному _id не найден' });
+      if (err instanceof mongoose.Error.ValidationError) {
+        next(new BadRequestError(err.message));
+      } else if (err instanceof mongoose.Error.DocumentNotFoundError) {
+        next(new NotFoundError('Пользователь по данному _id не найден'));
       } else {
-        res.status(500).send({ message: 'Произошла ошибка на сервере' });
+        next(err);
       }
     });
 };
-const updateAvatar = (req, res) => {
+const updateAvatar = (req, res, next) => {
   User.findByIdAndUpdate(
     req.user._id,
     { avatar: req.body.avatar },
@@ -73,16 +77,15 @@ const updateAvatar = (req, res) => {
   )
     .orFail()
     .then((user) => {
-      res.send(user);
+      res.status(httpConstants.HTTP_STATUS_OK).send(user);
     })
     .catch((err) => {
-      console.log(err.name);
-      if (err.name === 'ValidationError') {
-        res.status(400).send({ message: err.message });
-      } else if (err.name === 'DocumentNotFoundError') {
-        res.status(404).send({ message: 'Пользователь по данному _id не найден' });
+      if (err instanceof mongoose.Error.ValidationError) {
+        next(new BadRequestError(err.message));
+      } else if (err instanceof mongoose.Error.DocumentNotFoundError) {
+        next(new NotFoundError('Пользователь по данному _id не найден'));
       } else {
-        res.status(500).send({ message: 'Произошла ошибка на сервере' });
+        next(err);
       }
     });
 };

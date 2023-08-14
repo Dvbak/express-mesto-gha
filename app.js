@@ -27,6 +27,18 @@ app.use('*', (req, res) => {
   res.status(404).send({ message: 'Такой страницы не существует' });
 });
 
+app.use((err, req, res, next) => {
+  const { statusCode = 500, message } = err;
+  res
+    .status(statusCode)
+    .send({
+      message: statusCode === 500
+        ? 'Произошла ошибка на сервере'
+        : message,
+    });
+  next();
+});
+
 app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}`);
 });

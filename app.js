@@ -8,6 +8,7 @@ const routerUsers = require('./routes/users');
 const routerCards = require('./routes/cards');
 const routerRegistration = require('./routes/registr');
 const routerLogin = require('./routes/login');
+const auth = require('./middlewares/auth');
 
 const app = express();
 
@@ -26,6 +27,7 @@ app.use((req, res, next) => {
 app.use('/signup', routerRegistration);
 app.use('/signin', routerLogin);
 
+app.use(auth);
 app.use('/users', routerUsers);
 app.use('/cards', routerCards);
 // app.use('/', require('./routes/index.js'));

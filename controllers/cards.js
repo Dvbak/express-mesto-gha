@@ -2,6 +2,7 @@ const httpConstants = require('http2').constants;
 const mongoose = require('mongoose');
 const BadRequestError = require('../errors/BadRequestError');
 const NotFoundError = require('../errors/NotFoundError');
+const ForbiddenError = require('../errors/ForbiddenError');
 const Card = require('../models/card');
 
 const createCard = (req, res, next) => {
@@ -31,15 +32,23 @@ const getListCards = (req, res, next) => {
 };
 
 const deleteCardById = (req, res, next) => {
-  Card.findByIdAndRemove(req.params.cardId)
-    .orFail()
-    .then(() => {
-      res.status(httpConstants.HTTP_STATUS_OK).send({ message: 'Карточка удалена' });
+  Card.findById(req.params.cardId)
+    .then((card) => {
+      if (!card) {
+        throw new NotFoundError('Карточка по данному _id не найдена');
+      } else if (!card.owner.equals(req.user._id)) {
+        throw new ForbiddenError('Вы не можете удалить карточку другого пользователя');
+      }
+      Card.deleteOne(card)
+        .orFail()
+        .then(() => {
+          res.status(httpConstants.HTTP_STATUS_OK).send({ message: 'Карточка удалена' });
+        })
+        .catch((err) => next(err));
     })
     .catch((err) => {
-      if (err instanceof mongoose.Error.DocumentNotFoundError) {
-        next(new NotFoundError('Карточка по данному _id не найдена'));
-      } else if (err instanceof mongoose.Error.CastError) {
+      console.log(err.name);
+      if (err instanceof mongoose.Error.CastError) {
         next(new BadRequestError('Неправильный _id'));
       } else {
         next(err);

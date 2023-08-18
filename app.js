@@ -17,13 +17,6 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 mongoose.connect(DB_URL);
 
-app.use((req, res, next) => {
-  req.user = {
-    _id: '64c929147acb6130226796d7',
-  };
-  next();
-});
-
 app.use('/signup', routerRegistration);
 app.use('/signin', routerLogin);
 

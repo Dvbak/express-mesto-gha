@@ -56,6 +56,14 @@ const getListUsers = (req, res, next) => {
     .catch((err) => next(err));
 };
 
+const getCurrentUser = (req, res, next) => {
+  User.findById(req.user._id)
+    .then((user) => {
+      res.status(httpConstants.HTTP_STATUS_OK).send(user);
+    })
+    .catch((err) => next(err));
+};
+
 const getUserById = (req, res, next) => {
   User.findById(req.params.userId)
     .orFail()
@@ -125,6 +133,7 @@ module.exports = {
   createUser,
   login,
   getListUsers,
+  getCurrentUser,
   getUserById,
   updateUser,
   updateAvatar,

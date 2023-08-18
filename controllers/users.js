@@ -1,6 +1,7 @@
 const httpConstants = require('http2').constants;
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const BadRequestError = require('../errors/BadRequestError');
 const NotFoundError = require('../errors/NotFoundError');
 const ConflictError = require('../errors/ConflictError');
@@ -27,6 +28,26 @@ const createUser = (req, res, next) => {
           next(err);
         }
       }));
+};
+
+const login = (req, res, next) => {
+  const { email, password } = req.body;
+  console.log(email);
+  console.log(password);
+  return User.findUserByCredentials(email, password)
+    .then((user) => {
+      console.log(user);
+      const token = jwt.sign(
+        { _id: user._id },
+        'secret signature key',
+        { expiresIn: '7d' },
+      );
+      res.send({ token });
+    })
+    .catch((err) => {
+      console.log(err);
+      next(err);
+    });
 };
 
 const getListUsers = (req, res, next) => {
@@ -102,6 +123,7 @@ const updateAvatar = (req, res, next) => {
 
 module.exports = {
   createUser,
+  login,
   getListUsers,
   getUserById,
   updateUser,

@@ -6,6 +6,8 @@ const { PORT = 3000, DB_URL = 'mongodb://127.0.0.1:27017/mestodb' } = process.en
 
 const routerUsers = require('./routes/users');
 const routerCards = require('./routes/cards');
+const routerRegistration = require('./routes/registr');
+const routerLogin = require('./routes/login');
 
 const app = express();
 
@@ -21,8 +23,12 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use('/signup', routerRegistration);
+app.use('/signin', routerLogin);
+
 app.use('/users', routerUsers);
 app.use('/cards', routerCards);
+// app.use('/', require('./routes/index.js'));
 app.use('*', (req, res) => {
   res.status(404).send({ message: 'Такой страницы не существует' });
 });

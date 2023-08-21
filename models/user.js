@@ -1,7 +1,12 @@
+// имеет ли смысл в данном файле и в card проводить
+// проверки параметров, если валидация происходит
+// через celebrate?
+
 const mongoose = require('mongoose');
 const isEmail = require('validator/lib/isEmail');
 const bcrypt = require('bcryptjs');
 const UnautorizedError = require('../errors/UnautorizedError');
+const { urlRegAvatar } = require('../utils/constants');
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -33,7 +38,7 @@ const userSchema = new mongoose.Schema({
     default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
     validate: {
       validator(url) {
-        return (/^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)$/.test(url));
+        return (urlRegAvatar.test(url));
       },
       message: 'Ссылка на аватар должна начинаться с http:// или с https://',
     },

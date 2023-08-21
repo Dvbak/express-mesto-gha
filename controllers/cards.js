@@ -47,7 +47,6 @@ const deleteCardById = (req, res, next) => {
         .catch((err) => next(err));
     })
     .catch((err) => {
-      console.log(err.name);
       if (err instanceof mongoose.Error.CastError) {
         next(new BadRequestError('Неправильный _id'));
       } else {

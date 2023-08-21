@@ -19,7 +19,6 @@ const createUser = (req, res, next) => {
         name: user.name, about: user.about, avatar: user.avatar, _id: user._id, email: user.email,
       }))
       .catch((err) => {
-        console.log(err.code);
         if (err.code === 11000) {
           next(new ConflictError(`Пользователь с данным ${email} уже зарегистрирован`));
         } else if (err instanceof mongoose.Error.ValidationError) {
@@ -32,11 +31,8 @@ const createUser = (req, res, next) => {
 
 const login = (req, res, next) => {
   const { email, password } = req.body;
-  console.log(email);
-  console.log(password);
   return User.findUserByCredentials(email, password)
     .then((user) => {
-      console.log(user);
       const token = jwt.sign(
         { _id: user._id },
         'secret signature key',
@@ -45,7 +41,6 @@ const login = (req, res, next) => {
       res.send({ token });
     })
     .catch((err) => {
-      console.log(err);
       next(err);
     });
 };
